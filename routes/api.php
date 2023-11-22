@@ -20,14 +20,20 @@ use App\Http\Controllers\AuthController;
 //    return $request->user();
 //});
 
-#skill
-Route::post('/addSkill',[SkillController::class,'addSkill']);
-Route::get('/show',[SkillController::class,'show']);
+#看技能
+Route::get('/show', [SkillController::class, 'show']);
 
-#auth
-Route::post('/register',[AuthController::class, 'register']);
-Route::post('/login',[AuthController::class, 'login']);
+#註冊
+Route::post('/register', [AuthController::class, 'register']);
+#登入
+Route::post('/login', [AuthController::class, 'login']);
 
-Route::group(['middleware'=>'auth:sanctum'],function(){
-    Route::post('/logout',[AuthController::class, 'logout']);
+#需要驗證才能使用的路由
+Route::group(['middleware' => 'auth:sanctum'], function () {
+    #新增技能
+    Route::post('/addSkill', [SkillController::class, 'addSkill']);
+    #登出
+    Route::post('/logout', [AuthController::class, 'logout']);
+    #拿使用者資料
+    Route::post('/userAuth', [AuthController::class, 'userAuth']);
 });
