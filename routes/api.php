@@ -21,7 +21,7 @@ use App\Http\Controllers\AuthController;
 //});
 
 #看技能
-Route::get('/show', [SkillController::class, 'show']);
+Route::get('/show/{type}', [SkillController::class, 'show']);
 
 #註冊
 Route::post('/register', [AuthController::class, 'register']);
@@ -32,6 +32,10 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::group(['middleware' => 'auth:sanctum'], function () {
     #新增技能
     Route::post('/addSkill', [SkillController::class, 'addSkill']);
+    #修改技能
+    Route::post('/updateSkill', [SkillController::class, 'updateSkill']);
+    #修改技能圖片
+    // Route::post('/updateSkillImg', [SkillController::class, 'updateSkillImg']);
     #登出
     Route::post('/logout', [AuthController::class, 'logout']);
     #拿使用者資料

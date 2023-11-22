@@ -73,8 +73,8 @@ class AuthController extends Controller
         #發送token(系統設定3小時會失效)
         $token = $user->createToken('token')->plainTextToken;
 
-        #對登入者發送cookie
-        return response()->json(['type' => 0, 'message' => '登入成功'])->cookie('skill_token', $token, 600);
+        #對登入者發送cookie(cookie存活 台灣時間3小時後)
+        return response()->json(['type' => 0, 'message' => '登入成功'])->cookie('skill_token', $token, 660);
     }
 
     #登出

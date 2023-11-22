@@ -7,12 +7,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 
 class SkillController extends Controller
 {
+    #新增技能
     public function addSkill(Request $request)
     {
 
@@ -22,15 +23,14 @@ class SkillController extends Controller
             'type' => 'required',
             'name' => 'required',
             'describe' => 'required',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:1024',
-            'last_upd_user' => 'required',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif|max:1024'
         ]);
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        #宣告圖片路徑變數
-        $storagePath = '';
+        #取使用者資料
+        $user = Auth::user();
 
         try {
             #儲存圖片&取圖片路徑
@@ -44,64 +44,77 @@ class SkillController extends Controller
                 "name" => $request->name,
                 "describe" => $request->describe,
                 "img_url" => $imageUrl,
-                "last_upd_user" => $request->last_upd_user,
+                "last_upd_user" => $user->name,
             ]);
+
+            Log::info('新增:' . $add->name);
+            return response()->json(['type' => 0, 'message' => '新增成功', 'data' => $add]);
+            #
         } catch (\Exception $e) {
             #sql異常,寫日誌->刪圖片->回傳500
             Log::error($e->getMessage());
             Storage::delete($storagePath);
             return response()->json(['type' => 1, 'message' => '資料庫異常'], 500);
         }
-
-        Log::info('新增:' . $add->name);
-        return response()->json(['type' => 0, 'message' => $add]);
     }
 
-    public function show(Skill $order)
+    #看技能
+    public function show(string $type)
     {
-        return Skill::all();
+        $skillData = Skill::where('type', $type)->get();
+
+        return response()->json(['type' => 0, 'data' => $skillData]);
     }
 
-    public function edit(Skill $order)
-    {
-        //
-    }
-
-    public function update(Request $request, Skill $order)
+    public function edit(Request $request)
     {
         //
     }
 
-    public function addCookie(Request $request)
+    #修改技能
+    public function updateSkill(Request $request)
     {
-
-        #已經有cookie就不重複發放
-        if ($request->hasCookie('skill_token')) {
-
-            $cookieData = CookieSql::where('cookie', $request->cookie('skill_token'))->first();
-            if ($cookieData) {
-                return response()->json(['type' => 0, 'message' => '已有cookie']);
-            }
+        #驗證(失敗API回傳422)
+        $validator = Validator::make($request->all(), [
+            'id' => 'required',
+            'sort' => 'required',
+            'type' => 'required',
+            'name' => 'required',
+            'describe' => 'required'
+        ]);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        #如果沒有發一個新cookie&&新增
-        $randomToken = Str::random(64);
-        #存在時間為(現在台灣時間+2小時)
-        $cookie = CookieAdd::make('skill_token', $randomToken, 600);
-        CookieSql::create([
-            "cookie" => $randomToken,
-            "ip" => $request->ip(),
-        ]);
+        #取使用者資料
+        $user = Auth::user();
 
-        #刪除超過2小時候的cookie
-        $twoHoursAgo = Carbon::now()->copy()->subHours(2); // 获取两小时前的时间
-        CookieSql::where('created_at', '<', $twoHoursAgo)->delete();
+        try {
+            #存入資料庫&寫log
+            Skill::where('id', '=', $request->id)->update([
+                "sort" => $request->sort,
+                "type" => $request->type,
+                "name" => $request->name,
+                "describe" => $request->describe,
+                "last_upd_user" => $user->name,
+            ]);
 
-        return response()->json(['type' => 0, 'message' => $randomToken])->cookie($cookie);
+            Log::info('修改Skill id:' . $request->id);
+            return response()->json(['type' => 0, 'message' => '修改成功']);
+            #
+        } catch (\Exception $e) {
+            #sql異常,寫日誌->刪圖片->回傳500
+            Log::error($e->getMessage());
+            return response()->json(['type' => 1, 'message' => '資料庫異常'], 500);
+        }
     }
 
-    public static function checkCookie(string $cookie)
+    #修改技能圖片
+    public function updateSkillImg(Request $request)
     {
+        $checkImg = Skill::where('img_url', '=', $request->imageUrl);
 
+        if (!$checkImg) {
+        }
     }
 }
