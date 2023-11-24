@@ -26,7 +26,7 @@ class AuthController extends Controller
         }
 
         #查詢是否有相同帳號
-        $checkUserName = User::where('name', '=', $request->name);
+        $checkUserName = User::where('name', '=', $request->name)->first();
         if ($checkUserName) {
             return response()->json(['type' => 1, 'message' => '已有相同帳號'], 422);
         }
@@ -73,8 +73,8 @@ class AuthController extends Controller
         #發送token(系統設定3小時會失效)
         $token = $user->createToken('token')->plainTextToken;
 
-        #對登入者發送cookie(cookie存活 台灣時間3小時後)
-        return response()->json(['type' => 0, 'message' => '登入成功'])->cookie('skill_token', $token, 660);
+        #對登入者發送skill_token
+        return response()->json(['type' => 0, 'message' => '登入成功', 'data' => ['skill_token' => $token]]);
     }
 
     #登出

@@ -61,7 +61,7 @@ class SkillController extends Controller
     #看技能
     public function show(string $type)
     {
-        $skillData = Skill::where('type', $type)->get();
+        $skillData = Skill::where('type', $type)->orderBy('sort', 'asc')->get();
 
         return response()->json(['type' => 0, 'data' => $skillData]);
     }

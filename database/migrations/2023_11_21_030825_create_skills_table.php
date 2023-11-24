@@ -16,7 +16,7 @@ return new class extends Migration
             $table->integer('sort');
             $table->string('type');
             $table->string('name');
-            $table->string('describe');
+            $table->string('describe', 1000);
             $table->string('img_url');
             $table->string('last_upd_user')->nullable();
             $table->timestamps();
